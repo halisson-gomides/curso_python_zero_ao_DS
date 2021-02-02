@@ -1,0 +1,10 @@
+# ignorar todos os arquivos no diretório ipynb_checkpoints/
+.ipynb_checkpoints/
+
+# ignorar todos os arquivos no diretório dados-teo/
+dados/originais/dados-teo/
+
+# ignorar arquivos que nao fazem parte das aulas zero-ao-ds
+Imersao_Pandas_*.ipynb
+dados/processados/resultado_analise_partido_halisson.xlsx
+*.log
