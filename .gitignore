@@ -1,5 +1,7 @@
-# ignorar todos os arquivos no diretório ipynb_checkpoints/
+# ignorar todos os arquivos nos diretórios especificados abaixo
 .ipynb_checkpoints/
+.idea/
+__pycache__/
 
 # ignorar todos os arquivos no diretório dados-teo/
 dados/originais/dados-teo/
