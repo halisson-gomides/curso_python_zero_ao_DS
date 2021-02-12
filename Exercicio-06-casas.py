@@ -87,9 +87,10 @@ if st.checkbox('visualizar dados crus'):
     st.dataframe(dffiltrado.sample(20))
 
 c1, c2 = st.beta_columns((1.2, 1))
+
 # ------------------------
-# a média de preço, a média da sala de estar e também a média do preço por metro
-# quadrado em cada um dos códigos postais.
+# 1.3- Observar o número total de imóveis, a média de preço, a média da sala de estar e também a média do preço por metro
+#     quadrado em cada um dos códigos postais.
 # ------------------------
 
 # Contagem por código postal
@@ -112,6 +113,9 @@ c1.markdown("<span style='color:CadetBlue;font-size: 15px; font-weight: bold'>Va
 c1.dataframe(dfmerged, height=580)
 
 # ------------------------
+# 1.4- Analisar cada uma das colunas de um modo mais descrito.
+# ------------------------
+
 # Estatísticas descritivas
 # ------------------------
 num_atributos = dffiltrado.select_dtypes(include=['int64', 'float64'])
@@ -129,9 +133,11 @@ c2.markdown(f"<span style='color: CadetBlue;font-size: 15px; font-weight: bold'>
 c2.dataframe(dfestatistica, height=580)
 
 # ------------------------
-#  Densidade de Portfolio
+# 1.5- Um mapa com a densidade de portfólio por região e também densidade de preço
 # ------------------------
 
+#  Densidade de Portfolio
+# ------------------------
 st.title('Overview por Região')
 
 c1, c2 = st.beta_columns((1, 1))
@@ -157,12 +163,14 @@ with c1:
     folium_static(densidade_map)
 
 
+#  Densidade de Preço
+# ------------------------
 # Mapa de preço por região
 c2.header('Densidade de Preço')
 
 df = dffiltrado[['price', 'zipcode']].groupby('zipcode').mean().reset_index()
 df.columns = ['zip', 'price']
-df = df.sample(10)
+# df = df.sample(10)
 
 regiao_map = fol.Map(location=[dffiltrado['latitude'].mean(),
                                  dffiltrado['longitude'].mean()],
@@ -170,6 +178,8 @@ regiao_map = fol.Map(location=[dffiltrado['latitude'].mean(),
 
 geourl = 'https://opendata.arcgis.com/datasets/83fc2e72903343aabff6de8cb445b81c_2.geojson'
 geofile = fd.load_geofile(geourl)
+geofile = geofile[geofile['ZIP'].isin( df['zip'].tolist() )]
+
 regiao_map.choropleth(data=df, geo_data=geofile, columns=['zip', 'price'], key_on='feature.properties.ZIP',
                       fill_color='YlOrRd',
                       fill_opacity=0.7,

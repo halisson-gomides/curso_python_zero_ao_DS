@@ -2,7 +2,7 @@
 Funções genéricas para uso em scripts
 que gerem dashboards streamlit
 '''
-import geopandas as geopandas
+
 from streamlit import cache
 
 
@@ -40,5 +40,8 @@ def load_geofile(url):
     Returns: geopandas file
 
     """
+    import geopandas
+
     geofile = geopandas.read_file(url)
     return geofile
+
