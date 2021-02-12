@@ -2,13 +2,13 @@
 Funções genéricas para uso em scripts
 que gerem dashboards streamlit
 '''
-
+import geopandas as geopandas
 from streamlit import cache
 
 
 @cache(allow_output_mutation=True)
 def load_data(data_url: str, date_f: str = None, nrows: int = None) -> 'DataFrame':
-    '''
+    """
     Função para carregar o conjunto de dados
     :rtype: pd.Dataframe
     :param nrows: número de linhas a ser lida do conjunto de dados
@@ -16,7 +16,7 @@ def load_data(data_url: str, date_f: str = None, nrows: int = None) -> 'DataFram
 
     Args:
         date_f (None): campo data para ser convertido em datetime
-    '''
+    """
 
     import pandas as pd
     import dateutil.parser
@@ -28,3 +28,17 @@ def load_data(data_url: str, date_f: str = None, nrows: int = None) -> 'DataFram
         data[date_f] = data[date_f].apply(lambda x: dateutil.parser.parse(x).strftime("%d/%m/%Y"))
         # data[date_f] = pd.to_datetime(data[date_f], format="%d/%m/%Y")
     return data
+
+
+@cache(allow_output_mutation=True)
+def load_geofile(url):
+    """
+    Função para carregar um arquivo geojson
+    Args:
+        url: caminho do arquivo
+
+    Returns: geopandas file
+
+    """
+    geofile = geopandas.read_file(url)
+    return geofile

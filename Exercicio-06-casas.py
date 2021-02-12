@@ -34,6 +34,9 @@ import funcoes_domesticas_st as fd
 import streamlit as st
 import pandas as pd
 import numpy as np
+import folium as fol
+from streamlit_folium import folium_static
+from folium.plugins import MarkerCluster
 
 st.set_page_config(layout='wide')
 
@@ -61,10 +64,9 @@ dfhouses['price_m2'] = dfhouses['price'] / dfhouses['size_m2']
 
 # Filtros
 
-campos_default = ['id', 'price', 'zipcode', 'size_m2', 'price_m2']
+# campos_default = ['id', 'price', 'zipcode', 'size_m2', 'price_m2']
 
-f_atributos = st.sidebar.multiselect('Selecione as colunas', dfhouses.columns.tolist(),
-                                     default=campos_default)
+f_atributos = st.sidebar.multiselect('Selecione as colunas', dfhouses.columns.tolist())
 f_zipcode = st.sidebar.multiselect('Selecione o zipcode', dfhouses['zipcode'].sort_values(kind='mergesort').unique())
 
 if f_zipcode != [] and f_atributos != []:
@@ -125,3 +127,53 @@ dfestatistica.columns = ['atributos', 'max', 'min', 'media', 'mediana', 'desvio_
 c2.markdown(f"<span style='color: CadetBlue;font-size: 15px; font-weight: bold'>Estatística Descritiva</span>",
                 unsafe_allow_html=True)
 c2.dataframe(dfestatistica, height=580)
+
+# ------------------------
+#  Densidade de Portfolio
+# ------------------------
+
+st.title('Overview por Região')
+
+c1, c2 = st.beta_columns((1, 1))
+c1.header('Densidade de Portfolio')
+
+df = dffiltrado.sample(10)
+
+# Base Map - Folium
+densidade_map = fol.Map(location=[dffiltrado['latitude'].mean(),
+                                 dffiltrado['longitude'].mean()],
+                       default_zoom_start=15)
+marker_cluster = MarkerCluster().add_to(densidade_map)
+for name, row in df.iterrows():
+    fol.Marker( [row['latitude'], row['longitude']],
+               popup='Sold R${0} on: {1}. Features: {2} sqft, {3} bedrooms, {4} bathrooms, year built: {5}'.format(row['price'],
+                                                                                                                    row['date'],
+                                                                                                                   row['sqft_living'],
+                                                                                                                   row['bedrooms'],
+                                                                                                                   row['bathrooms'],
+                                                                                                                   row['yr_built'])).add_to(marker_cluster)
+
+with c1:
+    folium_static(densidade_map)
+
+
+# Mapa de preço por região
+c2.header('Densidade de Preço')
+
+df = dffiltrado[['price', 'zipcode']].groupby('zipcode').mean().reset_index()
+df.columns = ['zip', 'price']
+df = df.sample(10)
+
+regiao_map = fol.Map(location=[dffiltrado['latitude'].mean(),
+                                 dffiltrado['longitude'].mean()],
+                       default_zoom_start=15)
+
+geourl = 'https://opendata.arcgis.com/datasets/83fc2e72903343aabff6de8cb445b81c_2.geojson'
+geofile = fd.load_geofile(geourl)
+regiao_map.choropleth(data=df, geo_data=geofile, columns=['zip', 'price'], key_on='feature.properties.ZIP',
+                      fill_color='YlOrRd',
+                      fill_opacity=0.7,
+                      line_opacity=0.2,
+                      legend_name='MEDIA PREÇO')
+with c2:
+    folium_static(regiao_map)
