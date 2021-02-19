@@ -25,7 +25,7 @@ def load_data(data_url: str, date_f: str = None, nrows: int = None) -> 'DataFram
     data.rename(str.lower, axis='columns', inplace=True)
     data.rename(columns=dict(lat='latitude', long='longitude'), inplace=True)
     if date_f is not None:
-        data[date_f] = data[date_f].apply(lambda x: dateutil.parser.parse(x).strftime("%d/%m/%Y"))
+        data[date_f] = data[date_f].apply(lambda x: dateutil.parser.parse(x).strftime("%Y-%m-%d"))
         # data[date_f] = pd.to_datetime(data[date_f], format="%d/%m/%Y")
     return data
 

@@ -37,6 +37,8 @@ import numpy as np
 import folium as fol
 from streamlit_folium import folium_static
 from folium.plugins import MarkerCluster
+import plotly.express as px
+from datetime import datetime
 
 st.set_page_config(layout='wide')
 
@@ -187,3 +189,116 @@ regiao_map.choropleth(data=df, geo_data=geofile, columns=['zip', 'price'], key_o
                       legend_name='MEDIA PREÇO')
 with c2:
     folium_static(regiao_map)
+
+
+# ------------------------
+#  Distribuicao dos imoveis por categorias comerciais
+# ------------------------
+st.sidebar.title('Opções Comerciais')
+st.title('Atributos Comerciais')
+
+
+#  Media de Preço por Ano
+# ------------------------
+st.header('Média de preços por Ano de Construção')
+
+
+# Filtros
+min_year_built = int(dffiltrado['yr_built'].min())
+max_year_built = int(dffiltrado['yr_built'].max())
+st.sidebar.write('Selecione o Ano de Construção Máximo')
+f_yr_built = st.sidebar.slider('Ano de Construção', min_year_built, max_year_built, max_year_built)
+
+# Selecao de dados
+df = dffiltrado.loc[dffiltrado['yr_built'] <= f_yr_built]
+df = df[['yr_built', 'price']].groupby('yr_built').mean().reset_index()
+
+# Plot
+fig = px.line(df, x='yr_built', y='price')
+st.plotly_chart(fig, use_container_width=True)
+
+
+#  Media de Preço por Dia
+# ------------------------
+st.header('Média de preços por Dia')
+
+# Filtros
+min_date = datetime.strptime(dffiltrado['date'].min(), '%Y-%m-%d')
+max_date = datetime.strptime(dffiltrado['date'].max(), '%Y-%m-%d')
+st.sidebar.write('Selecione a Data Máxima')
+f_date = st.sidebar.slider('Data', min_date, max_date, max_date)
+
+# Selecao de dados
+# st.write(type(dffiltrado['date'][0]))
+dffiltrado['date'] = pd.to_datetime(dffiltrado['date'])
+df = dffiltrado.loc[dffiltrado['date'] < f_date]
+df = df[['date', 'price']].groupby('date').mean().reset_index()
+
+# Plot
+fig = px.line(df, x='date', y='price')
+st.plotly_chart(fig, use_container_width=True)
+
+
+#  Histograma de Distribuição do Preço
+# ------------------------
+st.header('Distribuição de preço')
+st.sidebar.subheader('Selecione o Preço Máximo')
+
+# Filtro
+min_price = int(dffiltrado['price'].min())
+max_price = int(dffiltrado['price'].max())
+mean_price = int(dffiltrado['price'].mean())
+
+f_price = st.sidebar.slider('Preço', min_price, max_price, mean_price)
+df = dffiltrado.loc[dffiltrado['price'] < f_price]
+
+# Plot
+fig = px.histogram(df, x='price', nbins=50)
+st.plotly_chart(fig, use_container_width=True)
+
+
+
+# ------------------------
+#  Distribuicao dos imoveis por categorias físicas
+# ------------------------
+st.sidebar.title('Opções de Atributos')
+st.title('Atributos das Casas')
+
+# Filtros
+f_bedrooms = st.sidebar.selectbox('Nº max. de quartos', sorted(set(dffiltrado['bedrooms'].unique())))
+f_bathrooms = st.sidebar.selectbox('Nº max. de banheiros', sorted(set(dffiltrado['bathrooms'].unique())))
+f_floors = st.sidebar.selectbox('Nº max. de andares', sorted(set(dffiltrado['floors'].unique())))
+f_waterview = st.sidebar.checkbox('Somente casas com vista para água')
+
+c1, c2 = st.beta_columns(2)
+
+#  Casas por quartos
+c1.header('Distribuição de casas por quartos')
+df = dffiltrado.loc[dffiltrado['bedrooms'] <= f_bedrooms]
+fig = px.histogram(df, x='bedrooms', nbins=10)
+c1.plotly_chart(fig, use_container_width=True)
+
+#  Casas por banheiros
+c2.header('Distribuição de casas por banheiros')
+df = dffiltrado.loc[dffiltrado['bathrooms'] <= f_bathrooms]
+fig = px.histogram(df, x='bathrooms', nbins=10)
+c2.plotly_chart(fig, use_container_width=True)
+
+
+c1, c2 = st.beta_columns(2)
+
+#  Casas por andares
+c1.header('Distribuição de casas por andares')
+df = dffiltrado.loc[dffiltrado['floors'] <= f_floors]
+fig = px.histogram(df, x='floors', nbins=10)
+c1.plotly_chart(fig, use_container_width=True)
+
+#  Casas por vista para agua
+if f_waterview:
+  df = dffiltrado[dffiltrado['waterfront'] == 1]
+else:
+  df = dffiltrado.copy()
+
+c2.header('Distribuição de casas de acordo com a vista')
+fig = px.histogram(df, x='waterfront', nbins=10)
+c2.plotly_chart(fig, use_container_width=True)
