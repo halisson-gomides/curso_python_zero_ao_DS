@@ -223,8 +223,13 @@ def commercial_distribution(data):
 
   # Filtros
   #  st.write(data['date'][0])
-  min_date = datetime.strptime(str(data['date'].min()), '%Y-%m-%d %H:%M:%S')
-  max_date = datetime.strptime(str(data['date'].max()), '%Y-%m-%d %H:%M:%S')
+  try:
+    min_date = datetime.strptime(str(data['date'].min()), '%Y-%m-%d %H:%M:%S')
+    max_date = datetime.strptime(str(data['date'].max()), '%Y-%m-%d %H:%M:%S')
+  except ValueError:
+    min_date = datetime.strptime(str(data['date'].min()), '%Y-%m-%d')
+    max_date = datetime.strptime(str(data['date'].max()), '%Y-%m-%d')
+    
   st.sidebar.write('Selecione a Data Máxima')
   f_date = st.sidebar.slider('Data', min_date, max_date, max_date)
 
